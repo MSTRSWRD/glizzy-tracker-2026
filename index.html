@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>🌭 Glizzy Tracker 2026</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Glizzy Tracker">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --coral: #D85A30;
+    --coral-dark: #993C1D;
+    --coral-light: #FAECE7;
+    --coral-mid: #F0997B;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --red: #E24B4A;
+    --red-light: #FCEBEB;
+    --purple: #3C3489;
+    --gray-50: #F8F7F4;
+    --gray-100: #F1EFE8;
+    --gray-200: #D3D1C7;
+    --gray-400: #888780;
+    --gray-700: #444441;
+    --gray-900: #2C2C2A;
+    --white: #ffffff;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { font-size: 16px; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-900);
+    min-height: 100vh;
+    padding-bottom: 2rem;
+  }
+  .header {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    padding: 1rem 1.25rem 0.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+  .header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+  .season-wrap { display: flex; flex-direction: column; gap: 3px; }
+  .season-bar-bg { height: 6px; background: var(--gray-100); border-radius: 6px; overflow: hidden; }
+  .season-bar-fill { height: 100%; background: var(--coral); border-radius: 6px; transition: width 0.6s ease; }
+  .season-label { font-size: 11px; color: var(--gray-400); text-align: right; }
+  .sync-status { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
+  .sync-ok { background: #EAF3DE; color: #3B6D11; }
+  .sync-err { background: var(--red-light); color: #A32D2D; }
+  .sync-loading { background: var(--gray-100); color: var(--gray-400); }
+  .test-badge { background: var(--amber-light); color: var(--amber); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; border: 1px solid #EF9F27; }
+
+  .tabs { display: flex; background: var(--white); border-bottom: 1px solid var(--gray-200); overflow-x: auto; }
+  .tab { flex: 1; min-width: 60px; padding: 10px 4px; font-size: 12px; font-weight: 500; color: var(--gray-400); border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .tab.active { color: var(--coral); border-bottom-color: var(--coral); }
+  .tab-icon { font-size: 16px; display: block; margin-bottom: 2px; }
+
+  .page { display: none; padding: 1rem 1rem 2rem; max-width: 640px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  .section-label { font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 0.75rem; }
+
+  /* Player grid */
+  .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 1.25rem; }
+  .player-card {
+    background: var(--white);
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.12s;
+    user-select: none;
+  }
+  .player-card:active { transform: scale(0.97); }
+  .player-card.selected { border-color: var(--coral); background: var(--coral-light); }
+  .player-card-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .player-card-count { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
+
+  /* Qty picker */
+  .log-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .qty-picker { display: flex; align-items: center; gap: 2px; background: var(--gray-100); border-radius: var(--radius-sm); padding: 3px; }
+  .qty-btn { width: 34px; height: 34px; border: none; background: transparent; border-radius: 6px; font-size: 20px; cursor: pointer; color: var(--gray-700); display: flex; align-items: center; justify-content: center; transition: background 0.1s; }
+  .qty-btn:active { background: var(--gray-200); }
+  .qty-num { font-size: 16px; font-weight: 600; min-width: 28px; text-align: center; color: var(--gray-900); }
+  .log-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px 20px;
+    background: var(--coral);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .log-btn:active { background: var(--coral-dark); }
+  .log-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .log-btn.test { background: var(--amber); }
+  .log-btn.test:active { background: #854F0B; }
+
+  .my-count-card {
+    background: var(--coral-light);
+    border: 1px solid var(--coral-mid);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    margin-top: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .my-count-num { font-size: 32px; font-weight: 700; color: var(--coral-dark); }
+  .my-count-label { font-size: 13px; color: var(--coral-dark); font-weight: 500; }
+  .my-count-sub { font-size: 12px; color: var(--coral-mid); margin-top: 2px; }
+
+  /* Board */
+  .locked-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 2rem 1.5rem; text-align: center; }
+  .locked-icon { font-size: 36px; margin-bottom: 0.5rem; }
+  .locked-card p { font-size: 14px; color: var(--gray-400); margin-bottom: 1rem; }
+  .pin-row { display: flex; gap: 8px; justify-content: center; }
+  .pin-input { width: 130px; text-align: center; letter-spacing: 4px; font-size: 18px; padding: 8px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); outline: none; }
+  .pin-input:focus { border-color: var(--coral); }
+  .pin-btn { padding: 8px 18px; background: var(--coral); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .pin-err { font-size: 12px; color: var(--red); margin-top: 6px; }
+
+  .board-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+  }
+  .board-medal { width: 22px; text-align: center; font-size: 16px; }
+  .board-rank { width: 18px; font-size: 12px; color: var(--gray-400); text-align: center; }
+  .board-name { flex: 1; font-size: 13px; font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .board-bar-wrap { flex: 2; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
+  .board-bar { height: 100%; background: var(--coral); border-radius: 4px; transition: width 0.5s; }
+  .board-count { font-size: 14px; font-weight: 700; min-width: 24px; text-align: right; color: var(--gray-900); }
+
+  .chart-wrap { position: relative; width: 100%; margin-top: 1rem; }
+
+  /* Feed */
+  .feed-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+  .feed-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--coral); margin-top: 5px; flex-shrink: 0; }
+  .feed-dot.test { background: var(--amber); }
+  .feed-text { font-size: 13px; color: var(--gray-900); }
+  .feed-time { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+  .feed-empty { font-size: 13px; color: var(--gray-400); padding: 1.5rem 0; text-align: center; }
+  .inline-badge { font-size: 10px; font-weight: 600; background: var(--amber-light); color: var(--amber); padding: 1px 6px; border-radius: 10px; vertical-align: middle; margin-left: 4px; }
+
+  /* Settings */
+  .name-row { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+  .name-real { font-size: 13px; color: var(--gray-400); width: 70px; flex-shrink: 0; }
+  .name-input { flex: 1; font-size: 13px; padding: 6px 10px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); outline: none; background: var(--white); }
+  .name-input:focus { border-color: var(--coral); }
+  .name-save { padding: 6px 12px; font-size: 12px; font-weight: 600; background: transparent; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); cursor: pointer; color: var(--gray-400); transition: all 0.15s; }
+  .name-save:hover { border-color: var(--coral); color: var(--coral); }
+
+  /* Admin */
+  .admin-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .admin-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+  .toggle-label { font-size: 13px; color: var(--gray-900); }
+  .toggle-sub { font-size: 11px; color: var(--gray-400); margin-top: 1px; }
+  .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: var(--gray-200); border-radius: 24px; cursor: pointer; transition: 0.2s; }
+  .toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+  .toggle input:checked + .toggle-slider { background: var(--amber); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+  .test-info { font-size: 12px; color: var(--gray-400); margin-bottom: 0.75rem; padding: 8px 10px; background: var(--gray-100); border-radius: var(--radius-sm); }
+  .danger-btn { padding: 8px 14px; background: transparent; border: 1.5px solid #F09595; color: #A32D2D; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+  .danger-btn:hover { background: var(--red-light); }
+  .confirm-box { background: var(--gray-100); border-radius: var(--radius-sm); padding: 12px; margin-top: 10px; }
+  .confirm-box p { font-size: 13px; color: var(--gray-900); margin-bottom: 10px; }
+  .confirm-btns { display: flex; gap: 8px; }
+  .btn-yes { padding: 7px 14px; background: var(--red); color: white; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-no { padding: 7px 14px; background: transparent; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; color: var(--gray-400); }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--purple); color: white;
+    padding: 10px 20px; border-radius: 24px;
+    font-size: 14px; font-weight: 500;
+    transition: transform 0.3s ease;
+    z-index: 999; white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Config banner */
+  .config-banner { background: #E6F1FB; border: 1px solid #85B7EB; border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .config-banner h3 { font-size: 14px; font-weight: 600; color: #0C447C; margin-bottom: 0.4rem; }
+  .config-banner p { font-size: 12px; color: #185FA5; line-height: 1.5; }
+  .config-banner code { background: rgba(24,95,165,0.12); padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     CONFIGURATION — paste your Apps Script Web App URL below
+     ============================================================ -->
+<script>
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzG6LPJGiM4417i5jkbQ_Bt-OTv14mDicRt_s1ZpOEwrB1QpNbMvKnspvoGG2Wlek7G/exec';
+  const ADMIN_PIN = '69420247';
+  const SEASON_START = new Date('2026-05-25');
+  const SEASON_END   = new Date('2026-09-07');
+</script>
+<!-- ============================================================ -->
+
+<div class="header">
+  <div class="header-top">
+    <h1>🌭 Glizzy Tracker <span id="testBadge" class="test-badge" style="display:none">TEST</span></h1>
+    <span class="sync-status sync-loading" id="syncStatus">loading…</span>
+  </div>
+  <div class="season-wrap">
+    <div class="season-bar-bg"><div class="season-bar-fill" id="seasonBar" style="width:0%"></div></div>
+    <div class="season-label" id="seasonLabel">—</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('log')"><span class="tab-icon">🌭</span>Log</button>
+  <button class="tab" onclick="switchTab('board')"><span class="tab-icon">🏆</span>Board</button>
+  <button class="tab" onclick="switchTab('feed')"><span class="tab-icon">📋</span>Feed</button>
+  <button class="tab" onclick="switchTab('names')"><span class="tab-icon">✏️</span>Names</button>
+  <button class="tab" onclick="switchTab('admin')"><span class="tab-icon">⚙️</span>Admin</button>
+</div>
+
+<!-- LOG -->
+<div class="page active" id="page-log">
+  <div id="configBanner" style="display:none">
+    <div class="config-banner">
+      <h3>⚠️ Setup needed</h3>
+      <p>Open <code>index.html</code> and replace <code>YOUR_APPS_SCRIPT_URL_HERE</code> with your deployed Apps Script URL. See <code>SETUP.md</code> for instructions.</p>
+    </div>
+  </div>
+  <p class="section-label">Who just ate a glizzy?</p>
+  <div class="player-grid" id="playerGrid"></div>
+  <div class="log-controls">
+    <div class="qty-picker">
+      <button class="qty-btn" onclick="changeQty(-1)">−</button>
+      <span class="qty-num" id="qtyNum">1</span>
+      <button class="qty-btn" onclick="changeQty(1)">+</button>
+    </div>
+    <span style="font-size:13px;color:var(--gray-400)">glizz(ies)</span>
+    <button class="log-btn" id="logBtn" onclick="submitLog()" disabled>Log it 🌭</button>
+  </div>
+  <div id="myCountArea"></div>
+</div>
+
+<!-- BOARD -->
+<div class="page" id="page-board">
+  <div id="boardContent"></div>
+</div>
+
+<!-- FEED -->
+<div class="page" id="page-feed">
+  <p class="section-label">Activity feed</p>
+  <div id="feedContent"><div class="feed-empty">Loading…</div></div>
+</div>
+
+<!-- NAMES -->
+<div class="page" id="page-names">
+  <p class="section-label">Edit display names</p>
+  <p style="font-size:12px;color:var(--gray-400);margin-bottom:1rem">Name changes don't affect your count.</p>
+  <div id="namesContent"></div>
+</div>
+
+<!-- ADMIN -->
+<div class="page" id="page-admin">
+  <div id="adminContent"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const DEFAULT_PLAYERS = [
+  { id: 'fleming', displayName: '10,000 Dogs "10-d"', realName: 'Fleming' },
+  { id: 'mazzola', displayName: 'Glizzola the Bunless', realName: 'Mazzola' },
+  { id: 'taylor',  displayName: 'Glizzstar_69',        realName: 'Taylor'  },
+  { id: 'justin',  displayName: 'Glizzdalf',           realName: 'Justin'  },
+  { id: 'jordan',  displayName: 'Glunt',               realName: 'Jordan'  },
+  { id: 'chris',   displayName: 'Chris',               realName: 'Chris'   },
+  { id: 'damon',   displayName: 'Damon',               realName: 'Damon'   },
+  { id: 'eloisa',  displayName: 'Eloisa',              realName: 'Eloisa'  },
+  { id: 'emily',   displayName: 'Emily',               realName: 'Emily'   },
+  { id: 'evan',    displayName: 'Evan',                realName: 'Evan'    },
+  { id: 'jen',     displayName: 'Jen',                 realName: 'Jen'     },
+  { id: 'kyle',    displayName: 'Kyle',                realName: 'Kyle'    },
+  { id: 'lauren',  displayName: 'Lauren',             realName: 'Lauren'  },
+  { id: 'parker',  displayName: 'Parker',              realName: 'Parker'  },
+  { id: 'sophie',  displayName: 'Sophie',              realName: 'Sophie'  },
+];
+
+let state = {
+  players: DEFAULT_PLAYERS.map(p => ({ ...p, count: 0 })),
+  log: [],
+  adminUnlocked: false,
+  testMode: false,
+  showDeleteConfirm: false,
+  showResetConfirm: false,
+};
+let selectedId = null;
+let qty = 1;
+let chartInst = null;
+let isConfigured = APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE';
+
+// ── API ────────────────────────────────────────────────────────
+async function apiFetch(payload) {
+  if (!isConfigured) return null;
+  const url = APPS_SCRIPT_URL + '?t=' + Date.now();
+  const res = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+async function loadData() {
+  setSyncStatus('loading');
+  if (!isConfigured) {
+    document.getElementById('configBanner').style.display = 'block';
+    setSyncStatus('err');
+    render();
+    return;
+  }
+  try {
+    const data = await apiFetch({ action: 'get' });
+    if (data && data.players) {
+      state.players = DEFAULT_PLAYERS.map(def => {
+        const ex = data.players.find(p => p.id === def.id);
+        return ex ? { ...def, displayName: ex.displayName, count: ex.count } : { ...def, count: 0 };
+      });
+      state.log = data.log || [];
+    }
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('err');
+  }
+  render();
+}
+
+async function saveData() {
+  if (!isConfigured) return;
+  setSyncStatus('loading');
+  try {
+    await apiFetch({ action: 'set', players: state.players, log: state.log });
+    setSyncStatus('ok');
+  } catch(e) {
+    setSyncStatus('err');
+  }
+}
+
+function setSyncStatus(s) {
+  const el = document.getElementById('syncStatus');
+  el.className = 'sync-status';
+  if (s === 'ok')      { el.classList.add('sync-ok');      el.textContent = '✓ synced'; }
+  else if (s === 'err'){ el.classList.add('sync-err');     el.textContent = '✗ offline'; }
+  else                  { el.classList.add('sync-loading'); el.textContent = 'syncing…'; }
+}
+
+// ── Season bar ────────────────────────────────────────────────
+function renderSeason() {
+  const now = new Date();
+  const total = SEASON_END - SEASON_START;
+  const elapsed = now - SEASON_START;
+  const pct = Math.max(0, Math.min(100, Math.round((elapsed / total) * 100)));
+  document.getElementById('seasonBar').style.width = pct + '%';
+  document.getElementById('seasonLabel').textContent =
+    now < SEASON_START ? 'Season starts May 25, 2026' : pct + '% through the season';
+}
+
+// ── Player grid ───────────────────────────────────────────────
+function renderGrid() {
+  document.getElementById('playerGrid').innerHTML = state.players.map(p => `
+    <div class="player-card${selectedId === p.id ? ' selected' : ''}" onclick="selectPlayer('${p.id}')">
+      <div class="player-card-name" title="${p.displayName}">${p.displayName}</div>
+      <div class="player-card-count">${p.count} 🌭</div>
+    </div>`).join('');
+  const btn = document.getElementById('logBtn');
+  btn.disabled = !selectedId;
+  btn.className = 'log-btn' + (state.testMode ? ' test' : '');
+  btn.textContent = state.testMode ? 'Log test 🧪' : 'Log it 🌭';
+  document.getElementById('testBadge').style.display = state.testMode ? 'inline' : 'none';
+}
+
+function renderMyCount() {
+  const area = document.getElementById('myCountArea');
+  if (!selectedId) { area.innerHTML = ''; return; }
+  const p = state.players.find(x => x.id === selectedId);
+  const real = state.log.filter(e => e.playerId === selectedId && !e.test).reduce((s,e) => s + e.qty, 0);
+  area.innerHTML = `
+    <div class="my-count-card">
+      <div class="my-count-num">${real}</div>
+      <div>
+        <div class="my-count-label">${p.displayName}</div>
+        <div class="my-count-sub">real glizzies this season</div>
+      </div>
+    </div>`;
+}
+
+// ── Board ─────────────────────────────────────────────────────
+function renderBoard() {
+  const area = document.getElementById('boardContent');
+  if (!state.adminUnlocked) {
+    area.innerHTML = `
+      <div class="locked-card">
+        <div class="locked-icon">🔒</div>
+        <p>Leaderboard is private until end of season.<br>Enter the admin PIN to unlock.</p>
+        <div class="pin-row">
+          <input class="pin-input" type="password" id="pinInput" maxlength="10" placeholder="PIN" onkeydown="if(event.key==='Enter')checkPin()"/>
+          <button class="pin-btn" onclick="checkPin()">Unlock</button>
+        </div>
+        <div class="pin-err" id="pinErr"></div>
+      </div>`;
+    return;
+  }
+  const sorted = [...state.players].sort((a,b) => b.count - a.count);
+  const max = Math.max(sorted[0]?.count || 1, 1);
+  const medals = ['🥇','🥈','🥉'];
+  const rows = sorted.map((p,i) => `
+    <div class="board-row">
+      <div class="board-medal">${medals[i] || ''}</div>
+      <div class="board-rank" style="${medals[i]?'visibility:hidden':''}>${i+1}</div>
+      <div class="board-name">${p.displayName}</div>
+      <div class="board-bar-wrap"><div class="board-bar" style="width:${Math.round(p.count/max*100)}%"></div></div>
+      <div class="board-count">${p.count}</div>
+    </div>`).join('');
+  const chartH = Math.max(280, sorted.length * 34 + 80);
+  area.innerHTML = `
+    <p class="section-label" style="margin-bottom:.75rem">Rankings</p>
+    ${rows}
+    <p class="section-label" style="margin:1.25rem 0 .75rem">Chart</p>
+    <div class="chart-wrap" style="height:${chartH}px">
+      <canvas id="boardChart"></canvas>
+    </div>`;
+  setTimeout(() => {
+    const ctx = document.getElementById('boardChart');
+    if (!ctx) return;
+    if (chartInst) chartInst.destroy();
+    chartInst = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: sorted.map(p => p.displayName),
+        datasets: [{ data: sorted.map(p => p.count), backgroundColor: '#F0997B', borderColor: '#D85A30', borderWidth: 1, borderRadius: 4 }]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, ticks: { stepSize: 1, color: '#888780' }, grid: { color: 'rgba(136,135,128,0.12)' } },
+          y: { ticks: { color: '#444441', font: { size: 12 } }, grid: { display: false } }
+        }
+      }
+    });
+  }, 60);
+}
+
+// ── Feed ──────────────────────────────────────────────────────
+function renderFeed() {
+  const area = document.getElementById('feedContent');
+  if (!state.log.length) { area.innerHTML = '<div class="feed-empty">No glizzies logged yet. The season awaits. 🌭</div>'; return; }
+  area.innerHTML = [...state.log].reverse().slice(0,60).map(e => {
+    const p = state.players.find(x => x.id === e.playerId);
+    const name = p ? p.displayName : e.playerId;
+    const dt = new Date(e.ts);
+    const time = dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' at ' + dt.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    return `<div class="feed-item">
+      <div class="feed-dot${e.test?' test':''}"></div>
+      <div>
+        <div class="feed-text">${name} ate ${e.qty} glizz${e.qty>1?'ies':'y'}${e.test?'<span class="inline-badge">test</span>':''}</div>
+        <div class="feed-time">${time}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Names ─────────────────────────────────────────────────────
+function renderNames() {
+  document.getElementById('namesContent').innerHTML = state.players.map(p => `
+    <div class="name-row">
+      <div class="name-real">${p.realName}</div>
+      <input class="name-input" id="ni-${p.id}" value="${p.displayName}" />
+      <button class="name-save" onclick="saveName('${p.id}')">Save</button>
+    </div>`).join('');
+}
+
+// ── Admin ─────────────────────────────────────────────────────
+function renderAdmin() {
+  const area = document.getElementById('adminContent');
+  if (!state.adminUnlocked) {
+    area.innerHTML = `
+      <div class="locked-card">
+        <div class="locked-icon">⚙️</div>
+        <p>Enter PIN to access admin controls.</p>
+        <div class="pin-row">
+          <input class="pin-input" type="password" id="adminPinInput" maxlength="10" placeholder="PIN" onkeydown="if(event.key==='Enter')checkAdminPin()"/>
+          <button class="pin-btn" onclick="checkAdminPin()">Unlock</button>
+        </div>
+        <div class="pin-err" id="adminPinErr"></div>
+      </div>`;
+    return;
+  }
+  const testLogs = state.log.filter(e => e.test);
+  const testQty  = testLogs.reduce((s,e)=>s+e.qty,0);
+  area.innerHTML = `
+    <div class="admin-card">
+      <h3>🧪 Test mode</h3>
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Enable test mode</div>
+          <div class="toggle-sub">Logs are marked as test data and excluded from real counts</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="testToggle" ${state.testMode?'checked':''} onchange="setTestMode(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      ${testLogs.length > 0 ? `
+        <div class="test-info">🧪 ${testLogs.length} test log(s) · ${testQty} test glizz${testQty>1?'ies':'y'} on record</div>
+        ${state.showDeleteConfirm ? `
+          <div class="confirm-box">
+            <p>Delete all test logs and reverse those counts?</p>
+            <div class="confirm-btns">
+              <button class="btn-yes" onclick="clearTestData()">Yes, clear test data</button>
+              <button class="btn-no" onclick="cancelConfirm()">Cancel</button>
+            </div>
+          </div>` : `
+          <button class="danger-btn" onclick="state.showDeleteConfirm=true;renderAdmin()">🗑 Clear test data</button>`}
+      ` : '<div class="test-info" style="color:var(--gray-400)">No test data on record.</div>'}
+    </div>
+    <div class="admin-card" style="border-color:#F09595">
+      <h3 style="color:#A32D2D">⚠️ Danger zone</h3>
+      <p style="font-size:13px;color:var(--gray-400);margin-bottom:.75rem">Reset ALL data — counts, logs, name changes. Cannot be undone.</p>
+      ${state.showResetConfirm ? `
+        <div class="confirm-box">
+          <p>This wipes everything. Are you absolutely sure?</p>
+          <div class="confirm-btns">
+            <button class="btn-yes" onclick="resetAll()">Yes, reset everything</button>
+            <button class="btn-no" onclick="cancelConfirm()">Cancel</button>
+          </div>
+        </div>` : `
+        <button class="danger-btn" onclick="state.showResetConfirm=true;renderAdmin()">🔄 Reset all data</button>`}
+    </div>`;
+}
+
+function render() {
+  renderSeason();
+  renderGrid();
+  renderMyCount();
+  renderBoard();
+  renderFeed();
+  renderNames();
+  renderAdmin();
+}
+
+// ── Interactions ──────────────────────────────────────────────
+function selectPlayer(id) {
+  selectedId = selectedId === id ? null : id;
+  document.getElementById('logBtn').disabled = !selectedId;
+  renderGrid();
+  renderMyCount();
+}
+
+function changeQty(d) {
+  qty = Math.max(1, Math.min(10, qty + d));
+  document.getElementById('qtyNum').textContent = qty;
+}
+
+async function submitLog() {
+  if (!selectedId) return;
+  const p = state.players.find(x => x.id === selectedId);
+  p.count += qty;
+  state.log.push({ playerId: selectedId, qty, ts: Date.now(), test: state.testMode });
+  renderGrid(); renderMyCount(); renderFeed();
+  if (state.adminUnlocked) { renderBoard(); renderAdmin(); }
+  showToast(state.testMode ? `[TEST] ${p.displayName} +${qty} 🧪` : `${p.displayName} +${qty} 🌭`);
+  await saveData();
+}
+
+async function saveName(id) {
+  const val = document.getElementById('ni-' + id)?.value.trim();
+  if (!val) return;
+  const p = state.players.find(x => x.id === id);
+  if (p) p.displayName = val;
+  renderGrid(); renderMyCount(); renderFeed();
+  if (state.adminUnlocked) renderBoard();
+  showToast('Name updated!');
+  await saveData();
+}
+
+function checkPin() {
+  if (document.getElementById('pinInput')?.value === ADMIN_PIN) {
+    state.adminUnlocked = true; renderBoard();
+  } else {
+    const e = document.getElementById('pinErr'); if(e) e.textContent = 'Incorrect PIN.';
+  }
+}
+
+function checkAdminPin() {
+  if (document.getElementById('adminPinInput')?.value === ADMIN_PIN) {
+    state.adminUnlocked = true; renderAdmin();
+  } else {
+    const e = document.getElementById('adminPinErr'); if(e) e.textContent = 'Incorrect PIN.';
+  }
+}
+
+function setTestMode(on) { state.testMode = on; renderGrid(); renderAdmin(); showToast(on ? 'Test mode on 🧪' : 'Test mode off'); }
+
+async function clearTestData() {
+  state.log.filter(e => e.test).forEach(e => {
+    const p = state.players.find(x => x.id === e.playerId);
+    if (p) p.count = Math.max(0, p.count - e.qty);
+  });
+  state.log = state.log.filter(e => !e.test);
+  state.showDeleteConfirm = false;
+  render();
+  showToast('Test data cleared 🧹');
+  await saveData();
+}
+
+async function resetAll() {
+  state.players = DEFAULT_PLAYERS.map(p => ({ ...p, count: 0 }));
+  state.log = [];
+  state.showResetConfirm = false;
+  selectedId = null;
+  render();
+  showToast('All data reset');
+  await saveData();
+}
+
+function cancelConfirm() { state.showDeleteConfirm = false; state.showResetConfirm = false; renderAdmin(); }
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['log','board','feed','names','admin'][i] === name);
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+loadData();
+</script>
+</body>
+</html>
