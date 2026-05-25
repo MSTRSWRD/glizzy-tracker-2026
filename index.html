@@ -10,168 +10,88 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root {
-    --coral: #D85A30;
-    --coral-dark: #993C1D;
-    --coral-light: #FAECE7;
-    --coral-mid: #F0997B;
-    --amber: #BA7517;
-    --amber-light: #FAEEDA;
-    --red: #E24B4A;
-    --red-light: #FCEBEB;
+    --coral: #D85A30; --coral-dark: #993C1D; --coral-light: #FAECE7; --coral-mid: #F0997B;
+    --amber: #BA7517; --amber-light: #FAEEDA;
+    --red: #E24B4A; --red-light: #FCEBEB;
     --purple: #3C3489;
-    --gray-50: #F8F7F4;
-    --gray-100: #F1EFE8;
-    --gray-200: #D3D1C7;
-    --gray-400: #888780;
-    --gray-700: #444441;
-    --gray-900: #2C2C2A;
+    --gray-50: #F8F7F4; --gray-100: #F1EFE8; --gray-200: #D3D1C7;
+    --gray-400: #888780; --gray-700: #444441; --gray-900: #2C2C2A;
     --white: #ffffff;
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html { font-size: 16px; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    background: var(--gray-50);
-    color: var(--gray-900);
-    min-height: 100vh;
-    padding-bottom: 2rem;
-  }
-  .header {
-    background: var(--white);
-    border-bottom: 1px solid var(--gray-200);
-    padding: 1rem 1.25rem 0.75rem;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--gray-50); color: var(--gray-900); min-height: 100vh; padding-bottom: 3rem; }
+  .header { background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 1rem 1.25rem 0.75rem; position: sticky; top: 0; z-index: 10; }
   .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
-  .header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
-  .season-wrap { display: flex; flex-direction: column; gap: 3px; }
-  .season-bar-bg { height: 6px; background: var(--gray-100); border-radius: 6px; overflow: hidden; }
+  .header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .season-bar-bg { height: 6px; background: var(--gray-100); border-radius: 6px; overflow: hidden; margin-bottom: 3px; }
   .season-bar-fill { height: 100%; background: var(--coral); border-radius: 6px; transition: width 0.6s ease; }
   .season-label { font-size: 11px; color: var(--gray-400); text-align: right; }
-  .sync-status { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 500; }
+  .sync-status { font-size: 11px; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
   .sync-ok { background: #EAF3DE; color: #3B6D11; }
   .sync-err { background: var(--red-light); color: #A32D2D; }
   .sync-loading { background: var(--gray-100); color: var(--gray-400); }
-  .test-badge { background: var(--amber-light); color: var(--amber); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; border: 1px solid #EF9F27; }
-
-  .tabs { display: flex; background: var(--white); border-bottom: 1px solid var(--gray-200); overflow-x: auto; }
-  .tab { flex: 1; min-width: 60px; padding: 10px 4px; font-size: 12px; font-weight: 500; color: var(--gray-400); border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; white-space: nowrap; }
+  .test-badge { background: var(--amber-light); color: var(--amber); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; border: 1px solid #EF9F27; margin-left: 6px; }
+  .tabs { display: flex; background: var(--white); border-bottom: 1px solid var(--gray-200); }
+  .tab { flex: 1; padding: 10px 4px; font-size: 11px; font-weight: 600; color: var(--gray-400); border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
   .tab.active { color: var(--coral); border-bottom-color: var(--coral); }
-  .tab-icon { font-size: 16px; display: block; margin-bottom: 2px; }
-
+  .tab-icon { font-size: 15px; display: block; margin-bottom: 2px; }
   .page { display: none; padding: 1rem 1rem 2rem; max-width: 640px; margin: 0 auto; }
   .page.active { display: block; }
-
-  .section-label { font-size: 11px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 0.75rem; }
-
-  /* Player grid */
+  .section-label { font-size: 11px; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 0.75rem; }
   .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 1.25rem; }
-  .player-card {
-    background: var(--white);
-    border: 1.5px solid var(--gray-200);
-    border-radius: var(--radius-md);
-    padding: 12px;
-    cursor: pointer;
-    transition: all 0.12s;
-    user-select: none;
-  }
+  .player-card { background: var(--white); border: 1.5px solid var(--gray-200); border-radius: var(--radius-md); padding: 12px; cursor: pointer; transition: all 0.12s; user-select: none; }
   .player-card:active { transform: scale(0.97); }
   .player-card.selected { border-color: var(--coral); background: var(--coral-light); }
   .player-card-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .player-card-count { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
-
-  /* Qty picker */
   .log-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .qty-picker { display: flex; align-items: center; gap: 2px; background: var(--gray-100); border-radius: var(--radius-sm); padding: 3px; }
-  .qty-btn { width: 34px; height: 34px; border: none; background: transparent; border-radius: 6px; font-size: 20px; cursor: pointer; color: var(--gray-700); display: flex; align-items: center; justify-content: center; transition: background 0.1s; }
+  .qty-btn { width: 34px; height: 34px; border: none; background: transparent; border-radius: 6px; font-size: 20px; cursor: pointer; color: var(--gray-700); display: flex; align-items: center; justify-content: center; }
   .qty-btn:active { background: var(--gray-200); }
-  .qty-num { font-size: 16px; font-weight: 600; min-width: 28px; text-align: center; color: var(--gray-900); }
-  .log-btn {
-    flex: 1;
-    min-width: 120px;
-    padding: 10px 20px;
-    background: var(--coral);
-    color: white;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
+  .qty-num { font-size: 16px; font-weight: 700; min-width: 28px; text-align: center; }
+  .log-btn { flex: 1; min-width: 120px; padding: 10px 20px; background: var(--coral); color: white; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; }
   .log-btn:active { background: var(--coral-dark); }
   .log-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .log-btn.test { background: var(--amber); }
-  .log-btn.test:active { background: #854F0B; }
-
-  .my-count-card {
-    background: var(--coral-light);
-    border: 1px solid var(--coral-mid);
-    border-radius: var(--radius-md);
-    padding: 1rem 1.25rem;
-    margin-top: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .my-count-num { font-size: 32px; font-weight: 700; color: var(--coral-dark); }
-  .my-count-label { font-size: 13px; color: var(--coral-dark); font-weight: 500; }
+  .my-count-modal { background: var(--coral-light); border: 1.5px solid var(--coral-mid); border-radius: var(--radius-md); padding: 1.25rem; margin-top: 1.25rem; text-align: center; display: none; }
+  .my-count-modal.show { display: block; }
+  .my-count-num { font-size: 48px; font-weight: 800; color: var(--coral-dark); line-height: 1; }
+  .my-count-name { font-size: 14px; font-weight: 600; color: var(--coral-dark); margin-top: 4px; }
   .my-count-sub { font-size: 12px; color: var(--coral-mid); margin-top: 2px; }
-
-  /* Board */
+  .my-count-dismiss { margin-top: 12px; padding: 6px 16px; background: transparent; border: 1.5px solid var(--coral-mid); border-radius: var(--radius-sm); color: var(--coral-dark); font-size: 13px; font-weight: 600; cursor: pointer; }
   .locked-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 2rem 1.5rem; text-align: center; }
   .locked-icon { font-size: 36px; margin-bottom: 0.5rem; }
   .locked-card p { font-size: 14px; color: var(--gray-400); margin-bottom: 1rem; }
   .pin-row { display: flex; gap: 8px; justify-content: center; }
   .pin-input { width: 130px; text-align: center; letter-spacing: 4px; font-size: 18px; padding: 8px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); outline: none; }
   .pin-input:focus { border-color: var(--coral); }
-  .pin-btn { padding: 8px 18px; background: var(--coral); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .pin-btn { padding: 8px 18px; background: var(--coral); color: white; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; }
   .pin-err { font-size: 12px; color: var(--red); margin-top: 6px; }
-
-  .board-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px;
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: var(--radius-sm);
-    margin-bottom: 6px;
-  }
+  .board-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-sm); margin-bottom: 6px; }
   .board-medal { width: 22px; text-align: center; font-size: 16px; }
   .board-rank { width: 18px; font-size: 12px; color: var(--gray-400); text-align: center; }
   .board-name { flex: 1; font-size: 13px; font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .board-bar-wrap { flex: 2; height: 8px; background: var(--gray-100); border-radius: 4px; overflow: hidden; }
   .board-bar { height: 100%; background: var(--coral); border-radius: 4px; transition: width 0.5s; }
-  .board-count { font-size: 14px; font-weight: 700; min-width: 24px; text-align: right; color: var(--gray-900); }
-
+  .board-count { font-size: 14px; font-weight: 700; min-width: 24px; text-align: right; }
   .chart-wrap { position: relative; width: 100%; margin-top: 1rem; }
-
-  /* Feed */
   .feed-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
   .feed-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--coral); margin-top: 5px; flex-shrink: 0; }
   .feed-dot.test { background: var(--amber); }
-  .feed-text { font-size: 13px; color: var(--gray-900); }
+  .feed-text { font-size: 13px; }
   .feed-time { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
   .feed-empty { font-size: 13px; color: var(--gray-400); padding: 1.5rem 0; text-align: center; }
-  .inline-badge { font-size: 10px; font-weight: 600; background: var(--amber-light); color: var(--amber); padding: 1px 6px; border-radius: 10px; vertical-align: middle; margin-left: 4px; }
-
-  /* Settings */
+  .inline-badge { font-size: 10px; font-weight: 700; background: var(--amber-light); color: var(--amber); padding: 1px 6px; border-radius: 10px; vertical-align: middle; margin-left: 4px; }
   .name-row { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
   .name-real { font-size: 13px; color: var(--gray-400); width: 70px; flex-shrink: 0; }
   .name-input { flex: 1; font-size: 13px; padding: 6px 10px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); outline: none; background: var(--white); }
   .name-input:focus { border-color: var(--coral); }
-  .name-save { padding: 6px 12px; font-size: 12px; font-weight: 600; background: transparent; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); cursor: pointer; color: var(--gray-400); transition: all 0.15s; }
-  .name-save:hover { border-color: var(--coral); color: var(--coral); }
-
-  /* Admin */
+  .name-save { padding: 6px 12px; font-size: 12px; font-weight: 600; background: transparent; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); cursor: pointer; color: var(--gray-400); }
+  .name-save:active { border-color: var(--coral); color: var(--coral); }
   .admin-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1rem; }
-  .admin-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 6px; }
+  .admin-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 0.75rem; }
   .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
-  .toggle-label { font-size: 13px; color: var(--gray-900); }
+  .toggle-label { font-size: 13px; }
   .toggle-sub { font-size: 11px; color: var(--gray-400); margin-top: 1px; }
   .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
   .toggle input { opacity: 0; width: 0; height: 0; }
@@ -179,57 +99,43 @@
   .toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.2s; }
   .toggle input:checked + .toggle-slider { background: var(--amber); }
   .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
-  .test-info { font-size: 12px; color: var(--gray-400); margin-bottom: 0.75rem; padding: 8px 10px; background: var(--gray-100); border-radius: var(--radius-sm); }
-  .danger-btn { padding: 8px 14px; background: transparent; border: 1.5px solid #F09595; color: #A32D2D; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
-  .danger-btn:hover { background: var(--red-light); }
+  .info-box { font-size: 12px; color: var(--gray-400); margin-bottom: 0.75rem; padding: 8px 10px; background: var(--gray-100); border-radius: var(--radius-sm); }
+  .danger-btn { padding: 8px 14px; background: transparent; border: 1.5px solid #F09595; color: #A32D2D; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .danger-btn:active { background: var(--red-light); }
+  .secondary-btn { padding: 8px 14px; background: transparent; border: 1.5px solid var(--gray-200); color: var(--gray-700); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .primary-btn { padding: 8px 14px; background: var(--coral); color: white; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; }
   .confirm-box { background: var(--gray-100); border-radius: var(--radius-sm); padding: 12px; margin-top: 10px; }
-  .confirm-box p { font-size: 13px; color: var(--gray-900); margin-bottom: 10px; }
+  .confirm-box p { font-size: 13px; margin-bottom: 10px; }
   .confirm-btns { display: flex; gap: 8px; }
-  .btn-yes { padding: 7px 14px; background: var(--red); color: white; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .btn-yes { padding: 7px 14px; background: var(--red); color: white; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 700; cursor: pointer; }
   .btn-no { padding: 7px 14px; background: transparent; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; color: var(--gray-400); }
-
-  /* Toast */
-  #toast {
-    position: fixed; bottom: 24px; left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--purple); color: white;
-    padding: 10px 20px; border-radius: 24px;
-    font-size: 14px; font-weight: 500;
-    transition: transform 0.3s ease;
-    z-index: 999; white-space: nowrap;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  }
+  .edit-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--gray-100); }
+  .edit-name { flex: 1; font-size: 13px; font-weight: 600; }
+  .edit-input { width: 60px; font-size: 13px; padding: 4px 8px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); text-align: center; }
+  .edit-save { padding: 4px 10px; font-size: 12px; font-weight: 600; background: var(--coral); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; }
+  .add-player-form { display: flex; gap: 8px; margin-top: 0.75rem; flex-wrap: wrap; }
+  .add-input { flex: 1; min-width: 100px; font-size: 13px; padding: 8px 10px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); outline: none; }
+  .add-input:focus { border-color: var(--coral); }
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--purple); color: white; padding: 10px 20px; border-radius: 24px; font-size: 14px; font-weight: 600; transition: transform 0.3s ease; z-index: 999; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
   #toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* Config banner */
-  .config-banner { background: #E6F1FB; border: 1px solid #85B7EB; border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1rem; }
-  .config-banner h3 { font-size: 14px; font-weight: 600; color: #0C447C; margin-bottom: 0.4rem; }
-  .config-banner p { font-size: 12px; color: #185FA5; line-height: 1.5; }
-  .config-banner code { background: rgba(24,95,165,0.12); padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 12px; }
 </style>
 </head>
 <body>
 
-<!-- ============================================================
-     CONFIGURATION — paste your Apps Script Web App URL below
-     ============================================================ -->
 <script>
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzG6LPJGiM4417i5jkbQ_Bt-OTv14mDicRt_s1ZpOEwrB1QpNbMvKnspvoGG2Wlek7G/exec';
   const ADMIN_PIN = '69420247';
   const SEASON_START = new Date('2026-05-25');
   const SEASON_END   = new Date('2026-09-07');
 </script>
-<!-- ============================================================ -->
 
 <div class="header">
   <div class="header-top">
     <h1>🌭 Glizzy Tracker <span id="testBadge" class="test-badge" style="display:none">TEST</span></h1>
     <span class="sync-status sync-loading" id="syncStatus">loading…</span>
   </div>
-  <div class="season-wrap">
-    <div class="season-bar-bg"><div class="season-bar-fill" id="seasonBar" style="width:0%"></div></div>
-    <div class="season-label" id="seasonLabel">—</div>
-  </div>
+  <div class="season-bar-bg"><div class="season-bar-fill" id="seasonBar" style="width:0%"></div></div>
+  <div class="season-label" id="seasonLabel">—</div>
 </div>
 
 <div class="tabs">
@@ -242,12 +148,6 @@
 
 <!-- LOG -->
 <div class="page active" id="page-log">
-  <div id="configBanner" style="display:none">
-    <div class="config-banner">
-      <h3>⚠️ Setup needed</h3>
-      <p>Open <code>index.html</code> and replace <code>YOUR_APPS_SCRIPT_URL_HERE</code> with your deployed Apps Script URL. See <code>SETUP.md</code> for instructions.</p>
-    </div>
-  </div>
   <p class="section-label">Who just ate a glizzy?</p>
   <div class="player-grid" id="playerGrid"></div>
   <div class="log-controls">
@@ -259,13 +159,16 @@
     <span style="font-size:13px;color:var(--gray-400)">glizz(ies)</span>
     <button class="log-btn" id="logBtn" onclick="submitLog()" disabled>Log it 🌭</button>
   </div>
-  <div id="myCountArea"></div>
+  <div class="my-count-modal" id="myCountModal">
+    <div class="my-count-num" id="myCountNum">0</div>
+    <div class="my-count-name" id="myCountName"></div>
+    <div class="my-count-sub">real glizzies this season 🌭</div>
+    <button class="my-count-dismiss" onclick="dismissCount()">Got it</button>
+  </div>
 </div>
 
 <!-- BOARD -->
-<div class="page" id="page-board">
-  <div id="boardContent"></div>
-</div>
+<div class="page" id="page-board"><div id="boardContent"></div></div>
 
 <!-- FEED -->
 <div class="page" id="page-feed">
@@ -276,19 +179,17 @@
 <!-- NAMES -->
 <div class="page" id="page-names">
   <p class="section-label">Edit display names</p>
-  <p style="font-size:12px;color:var(--gray-400);margin-bottom:1rem">Name changes don't affect your count.</p>
+  <p style="font-size:12px;color:var(--gray-400);margin-bottom:1rem">Changing your name won't affect your count.</p>
   <div id="namesContent"></div>
 </div>
 
 <!-- ADMIN -->
-<div class="page" id="page-admin">
-  <div id="adminContent"></div>
-</div>
+<div class="page" id="page-admin"><div id="adminContent"></div></div>
 
 <div id="toast"></div>
 
 <script>
-const DEFAULT_PLAYERS = [
+let DEFAULT_PLAYERS = [
   { id: 'fleming', displayName: '10,000 Dogs "10-d"', realName: 'Fleming' },
   { id: 'mazzola', displayName: 'Glizzola the Bunless', realName: 'Mazzola' },
   { id: 'taylor',  displayName: 'Glizzstar_69',        realName: 'Taylor'  },
@@ -301,7 +202,7 @@ const DEFAULT_PLAYERS = [
   { id: 'evan',    displayName: 'Evan',                realName: 'Evan'    },
   { id: 'jen',     displayName: 'Jen',                 realName: 'Jen'     },
   { id: 'kyle',    displayName: 'Kyle',                realName: 'Kyle'    },
-  { id: 'lauren',  displayName: 'Lauren',             realName: 'Lauren'  },
+  { id: 'lauren',  displayName: 'Lauren',              realName: 'Lauren'  },
   { id: 'parker',  displayName: 'Parker',              realName: 'Parker'  },
   { id: 'sophie',  displayName: 'Sophie',              realName: 'Sophie'  },
 ];
@@ -317,33 +218,30 @@ let state = {
 let selectedId = null;
 let qty = 1;
 let chartInst = null;
-let isConfigured = APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE';
 
-// ── API ────────────────────────────────────────────────────────
-async function apiFetch(payload) {
-  if (!isConfigured) return null;
-  const url = APPS_SCRIPT_URL + '?t=' + Date.now();
-  const res = await fetch(url, {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
+// ── API (GET-based to avoid CORS) ─────────────────────────────
+async function apiFetch(params) {
+  const url = APPS_SCRIPT_URL + '?' + new URLSearchParams(params) + '&t=' + Date.now();
+  const res = await fetch(url);
   return res.json();
 }
 
 async function loadData() {
   setSyncStatus('loading');
-  if (!isConfigured) {
-    document.getElementById('configBanner').style.display = 'block';
-    setSyncStatus('err');
-    render();
-    return;
-  }
   try {
     const data = await apiFetch({ action: 'get' });
     if (data && data.players) {
+      // Merge saved players with defaults (preserves new default players added later)
+      const saved = data.players;
       state.players = DEFAULT_PLAYERS.map(def => {
-        const ex = data.players.find(p => p.id === def.id);
+        const ex = saved.find(p => p.id === def.id);
         return ex ? { ...def, displayName: ex.displayName, count: ex.count } : { ...def, count: 0 };
+      });
+      // Add any extra players that were added via admin (not in defaults)
+      saved.forEach(p => {
+        if (!DEFAULT_PLAYERS.find(d => d.id === p.id)) {
+          state.players.push(p);
+        }
       });
       state.log = data.log || [];
     }
@@ -355,10 +253,12 @@ async function loadData() {
 }
 
 async function saveData() {
-  if (!isConfigured) return;
   setSyncStatus('loading');
   try {
-    await apiFetch({ action: 'set', players: state.players, log: state.log });
+    await apiFetch({
+      action: 'set',
+      data: encodeURIComponent(JSON.stringify({ players: state.players, log: state.log }))
+    });
     setSyncStatus('ok');
   } catch(e) {
     setSyncStatus('err');
@@ -368,28 +268,25 @@ async function saveData() {
 function setSyncStatus(s) {
   const el = document.getElementById('syncStatus');
   el.className = 'sync-status';
-  if (s === 'ok')      { el.classList.add('sync-ok');      el.textContent = '✓ synced'; }
-  else if (s === 'err'){ el.classList.add('sync-err');     el.textContent = '✗ offline'; }
+  if (s === 'ok')       { el.classList.add('sync-ok');      el.textContent = '✓ synced'; }
+  else if (s === 'err') { el.classList.add('sync-err');     el.textContent = '✗ offline'; }
   else                  { el.classList.add('sync-loading'); el.textContent = 'syncing…'; }
 }
 
-// ── Season bar ────────────────────────────────────────────────
+// ── Season ────────────────────────────────────────────────────
 function renderSeason() {
   const now = new Date();
-  const total = SEASON_END - SEASON_START;
-  const elapsed = now - SEASON_START;
-  const pct = Math.max(0, Math.min(100, Math.round((elapsed / total) * 100)));
+  const pct = Math.max(0, Math.min(100, Math.round(((now - SEASON_START) / (SEASON_END - SEASON_START)) * 100)));
   document.getElementById('seasonBar').style.width = pct + '%';
   document.getElementById('seasonLabel').textContent =
     now < SEASON_START ? 'Season starts May 25, 2026' : pct + '% through the season';
 }
 
-// ── Player grid ───────────────────────────────────────────────
+// ── Log tab ───────────────────────────────────────────────────
 function renderGrid() {
   document.getElementById('playerGrid').innerHTML = state.players.map(p => `
     <div class="player-card${selectedId === p.id ? ' selected' : ''}" onclick="selectPlayer('${p.id}')">
       <div class="player-card-name" title="${p.displayName}">${p.displayName}</div>
-      <div class="player-card-count">${p.count} 🌭</div>
     </div>`).join('');
   const btn = document.getElementById('logBtn');
   btn.disabled = !selectedId;
@@ -398,19 +295,11 @@ function renderGrid() {
   document.getElementById('testBadge').style.display = state.testMode ? 'inline' : 'none';
 }
 
-function renderMyCount() {
-  const area = document.getElementById('myCountArea');
-  if (!selectedId) { area.innerHTML = ''; return; }
-  const p = state.players.find(x => x.id === selectedId);
-  const real = state.log.filter(e => e.playerId === selectedId && !e.test).reduce((s,e) => s + e.qty, 0);
-  area.innerHTML = `
-    <div class="my-count-card">
-      <div class="my-count-num">${real}</div>
-      <div>
-        <div class="my-count-label">${p.displayName}</div>
-        <div class="my-count-sub">real glizzies this season</div>
-      </div>
-    </div>`;
+function dismissCount() {
+  document.getElementById('myCountModal').classList.remove('show');
+  selectedId = null;
+  document.getElementById('logBtn').disabled = true;
+  renderGrid();
 }
 
 // ── Board ─────────────────────────────────────────────────────
@@ -435,7 +324,7 @@ function renderBoard() {
   const rows = sorted.map((p,i) => `
     <div class="board-row">
       <div class="board-medal">${medals[i] || ''}</div>
-      <div class="board-rank" style="${medals[i]?'visibility:hidden':''}>${i+1}</div>
+      <div class="board-rank" style="${medals[i]?'visibility:hidden':''}">${i+1}</div>
       <div class="board-name">${p.displayName}</div>
       <div class="board-bar-wrap"><div class="board-bar" style="width:${Math.round(p.count/max*100)}%"></div></div>
       <div class="board-count">${p.count}</div>
@@ -454,18 +343,9 @@ function renderBoard() {
     if (chartInst) chartInst.destroy();
     chartInst = new Chart(ctx, {
       type: 'bar',
-      data: {
-        labels: sorted.map(p => p.displayName),
-        datasets: [{ data: sorted.map(p => p.count), backgroundColor: '#F0997B', borderColor: '#D85A30', borderWidth: 1, borderRadius: 4 }]
-      },
-      options: {
-        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { beginAtZero: true, ticks: { stepSize: 1, color: '#888780' }, grid: { color: 'rgba(136,135,128,0.12)' } },
-          y: { ticks: { color: '#444441', font: { size: 12 } }, grid: { display: false } }
-        }
-      }
+      data: { labels: sorted.map(p => p.displayName), datasets: [{ data: sorted.map(p => p.count), backgroundColor: '#F0997B', borderColor: '#D85A30', borderWidth: 1, borderRadius: 4 }] },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, ticks: { stepSize: 1, color: '#888780' }, grid: { color: 'rgba(136,135,128,0.12)' } }, y: { ticks: { color: '#444441', font: { size: 12 } }, grid: { display: false } } } }
     });
   }, 60);
 }
@@ -518,50 +398,61 @@ function renderAdmin() {
   const testLogs = state.log.filter(e => e.test);
   const testQty  = testLogs.reduce((s,e)=>s+e.qty,0);
   area.innerHTML = `
+
+    <!-- Test mode -->
     <div class="admin-card">
       <h3>🧪 Test mode</h3>
       <div class="toggle-row">
-        <div>
-          <div class="toggle-label">Enable test mode</div>
-          <div class="toggle-sub">Logs are marked as test data and excluded from real counts</div>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="testToggle" ${state.testMode?'checked':''} onchange="setTestMode(this.checked)">
-          <span class="toggle-slider"></span>
-        </label>
+        <div><div class="toggle-label">Enable test mode</div><div class="toggle-sub">Logs marked as test, excluded from real counts</div></div>
+        <label class="toggle"><input type="checkbox" id="testToggle" ${state.testMode?'checked':''} onchange="setTestMode(this.checked)"><span class="toggle-slider"></span></label>
       </div>
       ${testLogs.length > 0 ? `
-        <div class="test-info">🧪 ${testLogs.length} test log(s) · ${testQty} test glizz${testQty>1?'ies':'y'} on record</div>
+        <div class="info-box">🧪 ${testLogs.length} test log(s) · ${testQty} test glizz${testQty>1?'ies':'y'} on record</div>
         ${state.showDeleteConfirm ? `
-          <div class="confirm-box">
-            <p>Delete all test logs and reverse those counts?</p>
-            <div class="confirm-btns">
-              <button class="btn-yes" onclick="clearTestData()">Yes, clear test data</button>
-              <button class="btn-no" onclick="cancelConfirm()">Cancel</button>
-            </div>
-          </div>` : `
-          <button class="danger-btn" onclick="state.showDeleteConfirm=true;renderAdmin()">🗑 Clear test data</button>`}
-      ` : '<div class="test-info" style="color:var(--gray-400)">No test data on record.</div>'}
+          <div class="confirm-box"><p>Delete all test logs and reverse those counts?</p>
+            <div class="confirm-btns"><button class="btn-yes" onclick="clearTestData()">Yes, clear</button><button class="btn-no" onclick="cancelConfirm()">Cancel</button></div>
+          </div>` : `<button class="danger-btn" onclick="state.showDeleteConfirm=true;renderAdmin()">🗑 Clear test data</button>`}
+      ` : '<div class="info-box" style="color:var(--gray-400)">No test data on record.</div>'}
     </div>
+
+    <!-- Edit counts -->
+    <div class="admin-card">
+      <h3>✏️ Edit counts</h3>
+      <p style="font-size:12px;color:var(--gray-400);margin-bottom:.75rem">Manually adjust any player's count.</p>
+      ${state.players.map(p => `
+        <div class="edit-row">
+          <div class="edit-name">${p.displayName}</div>
+          <input class="edit-input" type="number" id="ec-${p.id}" value="${p.count}" min="0" />
+          <button class="edit-save" onclick="saveCount('${p.id}')">Save</button>
+        </div>`).join('')}
+    </div>
+
+    <!-- Add player -->
+    <div class="admin-card">
+      <h3>➕ Add participant</h3>
+      <p style="font-size:12px;color:var(--gray-400);margin-bottom:.5rem">Add someone mid-season — their count starts at 0.</p>
+      <div class="add-player-form">
+        <input class="add-input" id="addReal" placeholder="Real name" />
+        <input class="add-input" id="addDisplay" placeholder="Glizz-name (optional)" />
+        <button class="primary-btn" onclick="addPlayer()">Add</button>
+      </div>
+    </div>
+
+    <!-- Danger zone -->
     <div class="admin-card" style="border-color:#F09595">
       <h3 style="color:#A32D2D">⚠️ Danger zone</h3>
       <p style="font-size:13px;color:var(--gray-400);margin-bottom:.75rem">Reset ALL data — counts, logs, name changes. Cannot be undone.</p>
       ${state.showResetConfirm ? `
-        <div class="confirm-box">
-          <p>This wipes everything. Are you absolutely sure?</p>
-          <div class="confirm-btns">
-            <button class="btn-yes" onclick="resetAll()">Yes, reset everything</button>
-            <button class="btn-no" onclick="cancelConfirm()">Cancel</button>
-          </div>
-        </div>` : `
-        <button class="danger-btn" onclick="state.showResetConfirm=true;renderAdmin()">🔄 Reset all data</button>`}
+        <div class="confirm-box"><p>This wipes everything. Are you sure?</p>
+          <div class="confirm-btns"><button class="btn-yes" onclick="resetAll()">Yes, reset</button><button class="btn-no" onclick="cancelConfirm()">Cancel</button></div>
+        </div>` : `<button class="danger-btn" onclick="state.showResetConfirm=true;renderAdmin()">🔄 Reset all data</button>`}
     </div>`;
 }
 
+// ── Master render ─────────────────────────────────────────────
 function render() {
   renderSeason();
   renderGrid();
-  renderMyCount();
   renderBoard();
   renderFeed();
   renderNames();
@@ -572,8 +463,8 @@ function render() {
 function selectPlayer(id) {
   selectedId = selectedId === id ? null : id;
   document.getElementById('logBtn').disabled = !selectedId;
+  document.getElementById('myCountModal').classList.remove('show');
   renderGrid();
-  renderMyCount();
 }
 
 function changeQty(d) {
@@ -586,7 +477,13 @@ async function submitLog() {
   const p = state.players.find(x => x.id === selectedId);
   p.count += qty;
   state.log.push({ playerId: selectedId, qty, ts: Date.now(), test: state.testMode });
-  renderGrid(); renderMyCount(); renderFeed();
+  // Show personal count modal
+  const realCount = state.log.filter(e => e.playerId === selectedId && !e.test).reduce((s,e) => s + e.qty, 0);
+  document.getElementById('myCountNum').textContent = realCount;
+  document.getElementById('myCountName').textContent = p.displayName;
+  document.getElementById('myCountModal').classList.add('show');
+  renderGrid();
+  renderFeed();
   if (state.adminUnlocked) { renderBoard(); renderAdmin(); }
   showToast(state.testMode ? `[TEST] ${p.displayName} +${qty} 🧪` : `${p.displayName} +${qty} 🌭`);
   await saveData();
@@ -597,58 +494,61 @@ async function saveName(id) {
   if (!val) return;
   const p = state.players.find(x => x.id === id);
   if (p) p.displayName = val;
-  renderGrid(); renderMyCount(); renderFeed();
+  renderGrid(); renderFeed(); renderAdmin();
   if (state.adminUnlocked) renderBoard();
   showToast('Name updated!');
   await saveData();
 }
 
+async function saveCount(id) {
+  const val = parseInt(document.getElementById('ec-' + id)?.value);
+  if (isNaN(val) || val < 0) return;
+  const p = state.players.find(x => x.id === id);
+  if (p) p.count = val;
+  renderGrid();
+  if (state.adminUnlocked) renderBoard();
+  showToast(`${p.displayName} count updated to ${val}`);
+  await saveData();
+}
+
+async function addPlayer() {
+  const real = document.getElementById('addReal')?.value.trim();
+  const display = document.getElementById('addDisplay')?.value.trim();
+  if (!real) { showToast('Enter a real name'); return; }
+  const id = real.toLowerCase().replace(/[^a-z0-9]/g,'_') + '_' + Date.now();
+  state.players.push({ id, realName: real, displayName: display || real, count: 0 });
+  document.getElementById('addReal').value = '';
+  document.getElementById('addDisplay').value = '';
+  renderGrid(); renderNames(); renderAdmin();
+  if (state.adminUnlocked) renderBoard();
+  showToast(`${display || real} added!`);
+  await saveData();
+}
+
 function checkPin() {
-  if (document.getElementById('pinInput')?.value === ADMIN_PIN) {
-    state.adminUnlocked = true; renderBoard();
-  } else {
-    const e = document.getElementById('pinErr'); if(e) e.textContent = 'Incorrect PIN.';
-  }
+  if (document.getElementById('pinInput')?.value === ADMIN_PIN) { state.adminUnlocked = true; renderBoard(); }
+  else { const e = document.getElementById('pinErr'); if(e) e.textContent = 'Incorrect PIN.'; }
 }
-
 function checkAdminPin() {
-  if (document.getElementById('adminPinInput')?.value === ADMIN_PIN) {
-    state.adminUnlocked = true; renderAdmin();
-  } else {
-    const e = document.getElementById('adminPinErr'); if(e) e.textContent = 'Incorrect PIN.';
-  }
+  if (document.getElementById('adminPinInput')?.value === ADMIN_PIN) { state.adminUnlocked = true; renderAdmin(); }
+  else { const e = document.getElementById('adminPinErr'); if(e) e.textContent = 'Incorrect PIN.'; }
 }
-
 function setTestMode(on) { state.testMode = on; renderGrid(); renderAdmin(); showToast(on ? 'Test mode on 🧪' : 'Test mode off'); }
-
 async function clearTestData() {
-  state.log.filter(e => e.test).forEach(e => {
-    const p = state.players.find(x => x.id === e.playerId);
-    if (p) p.count = Math.max(0, p.count - e.qty);
-  });
+  state.log.filter(e => e.test).forEach(e => { const p = state.players.find(x => x.id === e.playerId); if(p) p.count = Math.max(0, p.count - e.qty); });
   state.log = state.log.filter(e => !e.test);
   state.showDeleteConfirm = false;
-  render();
-  showToast('Test data cleared 🧹');
-  await saveData();
+  render(); showToast('Test data cleared 🧹'); await saveData();
 }
-
 async function resetAll() {
   state.players = DEFAULT_PLAYERS.map(p => ({ ...p, count: 0 }));
-  state.log = [];
-  state.showResetConfirm = false;
-  selectedId = null;
-  render();
-  showToast('All data reset');
-  await saveData();
+  state.log = []; state.showResetConfirm = false; selectedId = null;
+  render(); showToast('All data reset'); await saveData();
 }
-
 function cancelConfirm() { state.showDeleteConfirm = false; state.showResetConfirm = false; renderAdmin(); }
 
 function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['log','board','feed','names','admin'][i] === name);
-  });
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['log','board','feed','names','admin'][i] === name));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
 }
@@ -656,8 +556,7 @@ function switchTab(name) {
 let toastTimer;
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
 }
