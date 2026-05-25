@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2luTU27VeowwKQSCCEj2c54nHf0uVLXDtaJ_xVSlvjBLWYiCLkiWpst3vwexguq3Vrw/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjeNeJ_rVJ9l3Q6ZnyTYJ3AFbRuXKRhRd1QfL0g5vrlJAW0LRFw3QxSoPBzgSh9eUYMg/exec';
 const ADMIN_PIN = '69420247';
 const SEASON_START = new Date('2026-05-25');
 const SEASON_END   = new Date('2026-09-07');
